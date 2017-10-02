@@ -146,3 +146,47 @@ Feature: Collections Overview
     When I go to the homepage of the "Jira" collection
     Then I should see the "Jira will be down for maintenance" tile
     And I should not see the "Maintenance page" tile
+
+  Scenario: My content facet
+    Given users:
+      | Username          |
+      | Carolina Mercedes |
+      | Luigi Plant       |
+      | Yiannis Parios    |
+    And the following collections:
+      | title                       | state     | featured | author            |
+      | Enemies of the state        | validated | yes      | Luigi Plant       |
+      | Fed up meatlovers           | validated | no       | Carolina Mercedes |
+      | Ugly farmers                | validated | yes      | Luigi Plant       |
+      | Yiannis Parios collection 1 | validated | no       | Yiannis Parios    |
+      | Yiannis Parios collection 2 | validated | no       | Yiannis Parios    |
+      | Yiannis Parios collection 3 | validated | no       | Yiannis Parios    |
+    # Technical: use a separate step to create a collection associated to the anonymous user.
+    And the following collection:
+      | title    | Biologic meatballs |
+      | state    | validated          |
+      | featured | no                 |
+
+    # The "My collections" facet item should not be shown to anonymous users.
+    When I am an anonymous user
+    And I click "Collections"
+    Then the "My collections content" inline facet should allow selecting the following values "Featured collections (2)"
+
+    When I am logged in as "Yiannis Parios"
+    And I click "Collections"
+    # Log in as a different user in order to ensure cacheability. Also, items are sorted by count.
+    Then the "My collections content" inline facet should allow selecting the following values "My collections (3), Featured collections (2)"
+    When I am logged in as "Carolina Mercedes"
+    When I click "Collections"
+    Then the "My collections content" inline facet should allow selecting the following values "Featured collections (2), My collections (1)"
+    When I am an anonymous user
+    And I click "Collections"
+    Then the "My collections content" inline facet should allow selecting the following values "Featured collections (2)"
+    When I am logged in as "Carolina Mercedes"
+    When I click "Collections"
+    When I click "My collections" in the "My collections content" inline facet
+    Then I should see the "Fed up meatlovers" tile
+    But I should not see the "Ugly farmers" tile
+    Then I click "Featured collections" in the "My collections content" inline facet
+    And I should see the "Ugly farmers" tile
+    But I should not see the "Fed up meatlovers" tile
